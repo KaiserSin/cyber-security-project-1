@@ -106,9 +106,21 @@ class BankController(private val accountService: AccountService) {
     }
     
     @GetMapping("/admin")
-    fun adminPage(session: HttpSession, model: Model): String {
-        if (session.getAttribute("isAdmin") != true) return "redirect:/login"
+    fun adminPage(model: Model): String {  // A01 BROKEN ACCESS CONTROL: no auth check
         model.addAttribute("accounts", accountService.getAllAccounts())
         return "admin"
     }
+    // =====================================================
+    // A01:2021 - BROKEN ACCESS CONTROL 
+    // Vulnerability: anyone can access /admin without logging in
+    // =====================================================
+    // FIX: Add session check:
+    //
+    // @GetMapping("/admin")
+    // fun adminPage(session: HttpSession, model: Model): String {
+    //     if (session.getAttribute("isAdmin") != true) return "redirect:/login"
+    //     model.addAttribute("accounts", accountService.getAllAccounts())
+    //     return "admin"
+    // }
+    // =====================================================
 }
