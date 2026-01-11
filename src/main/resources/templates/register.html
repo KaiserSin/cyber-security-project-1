@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Register - Bank</title>
+</head>
+<body>
+    <h1>Register</h1>
+    <p th:if="${error}" style="color:red" th:text="${error}"></p>
+    <form method="post" action="/register">
+        <p>
+            <label>Username:</label><br>
+            <input type="text" name="username" required>
+        </p>
+        <p>
+            <label>Password:</label><br>
+            <input type="password" name="password" required>
+        </p>
+        <button type="submit">Register</button>
+    </form>
+    <p><a href="/login">Back to Login</a></p>
+</body>
+</html>
