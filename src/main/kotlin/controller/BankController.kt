@@ -66,16 +66,11 @@ class BankController(private val accountService: AccountService) {
     fun transfer(
         @RequestParam toUsername: String,
         @RequestParam amount: BigDecimal,
-        session: HttpSession,
-        model: Model
+        session: HttpSession
     ): String {
         val accountId = session.getAttribute("accountId") as? Long ?: return "redirect:/login"
         val success = accountService.transfer(accountId, toUsername, amount)
-        return if (success) {
-            "redirect:/dashboard?success"
-        } else {
-            "redirect:/dashboard?error"
-        }
+        return if (success) "redirect:/dashboard?success" else "redirect:/dashboard?error"
     }
 
     @GetMapping("/logout")

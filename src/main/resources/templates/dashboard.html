@@ -8,7 +8,7 @@
     <h2>Your Balance: $<span th:text="${account.balance}"></span></h2>
     <p>Account ID: <span th:text="${account.id}"></span></p>
     <p th:if="${param.success}" style="color:green">Transfer successful!</p>
-    <p th:if="${param.error}" style="color:red">Transfer failed! Check username and amount.</p>
+    <p th:if="${param.error}" style="color:red">Transfer failed!</p>
     <hr>
     <h3>Transfer Money</h3>
     <form method="post" action="/transfer">

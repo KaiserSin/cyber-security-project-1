@@ -3,44 +3,62 @@ package org.example.service
 import org.example.entity.Account
 import org.example.repository.AccountRepository
 import org.springframework.stereotype.Service
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 
 @Service
 class AccountService(private val accountRepository: AccountRepository) {
 
+    @PersistenceContext
+    private lateinit var entityManager: EntityManager
+
     fun register(username: String, password: String): Account? {
-        if (accountRepository.findByUsername(username) != null) {
-            return null
-        }
-        val account = Account(
-            username = username,
-            password = password,
-            balance = BigDecimal("100.00")
-        )
-        return accountRepository.save(account)
+        if (accountRepository.findByUsername(username) != null) return null
+        return accountRepository.save(Account(username = username, password = password, balance = BigDecimal("100.00")))
     }
 
-    fun login(username: String, password: String): Account? {
-        return accountRepository.findByUsernameAndPassword(username, password)
-    }
+    fun login(username: String, password: String) = accountRepository.findByUsernameAndPassword(username, password)
 
-    fun getAccount(id: Long): Account? {
-        return accountRepository.findById(id).orElse(null)
-    }
+    fun getAccount(id: Long) = accountRepository.findById(id).orElse(null)
 
+    // =====================================================
+    // A03:2021 - INJECTION (OWASP Top 10)
+    // Vulnerability: SQL injection via string concatenation
+    // User input is directly concatenated into SQL query
+    // =====================================================
+    // FIX: Use safe repository method instead:
+    //
+    // @Transactional
+    // fun transfer(fromId: Long, toUsername: String, amount: BigDecimal): Boolean {
+    //     val from = getAccount(fromId) ?: return false
+    //     val to = accountRepository.findByUsername(toUsername) ?: return false
+    //
+    //     if (from.balance < amount) return false
+    //
+    //     from.balance -= amount
+    //     to.balance += amount
+    //     accountRepository.save(from)
+    //     accountRepository.save(to)
+    //     return true
+    // }
+    // =====================================================
+    @Transactional
     fun transfer(fromId: Long, toUsername: String, amount: BigDecimal): Boolean {
-        val fromAccount = accountRepository.findById(fromId).orElse(null) ?: return false
-        val toAccount = accountRepository.findByUsername(toUsername) ?: return false
+        val from = getAccount(fromId) ?: return false
         
-        if (fromAccount.balance < amount || amount <= BigDecimal.ZERO) {
-            return false
-        }
+        val sql = "SELECT * FROM accounts WHERE username = '$toUsername'"  // A03 INJECTION
+        val results = entityManager.createNativeQuery(sql, Account::class.java).resultList
+        if (results.isEmpty()) return false
         
-        fromAccount.balance = fromAccount.balance - amount
-        toAccount.balance = toAccount.balance + amount
+        val to = results[0] as Account
+        if (from.balance < amount) return false
         
-        accountRepository.save(fromAccount)
-        accountRepository.save(toAccount)
+        from.balance -= amount
+        to.balance += amount
+        accountRepository.save(from)
+        accountRepository.save(to)
         return true
     }
 }
