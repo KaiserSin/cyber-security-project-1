@@ -23,27 +23,9 @@ class AccountService(private val accountRepository: AccountRepository) {
 
     fun getAccount(id: Long) = accountRepository.findById(id).orElse(null)
 
-    // =====================================================
-    // A03:2021 - INJECTION (OWASP Top 10)
-    // Vulnerability: SQL injection via string concatenation
-    // User input is directly concatenated into SQL query
-    // =====================================================
-    // FIX: Use safe repository method instead:
-    //
-    // @Transactional
-    // fun transfer(fromId: Long, toUsername: String, amount: BigDecimal): Boolean {
-    //     val from = getAccount(fromId) ?: return false
-    //     val to = accountRepository.findByUsername(toUsername) ?: return false
-    //
-    //     if (from.balance < amount) return false
-    //
-    //     from.balance -= amount
-    //     to.balance += amount
-    //     accountRepository.save(from)
-    //     accountRepository.save(to)
-    //     return true
-    // }
-    // =====================================================
+    fun getAllAccounts() = accountRepository.findAll()
+
+    
     @Transactional
     fun transfer(fromId: Long, toUsername: String, amount: BigDecimal): Boolean {
         val from = getAccount(fromId) ?: return false
@@ -61,4 +43,24 @@ class AccountService(private val accountRepository: AccountRepository) {
         accountRepository.save(to)
         return true
     }
+    // =====================================================
+    // A03:2021 - INJECTION
+    // Vulnerability: SQL injection via string concatenation
+    // =====================================================
+    // FIX: Use safe repository method instead:
+    //
+    // @Transactional
+    // fun transfer(fromId: Long, toUsername: String, amount: BigDecimal): Boolean {
+    //     val from = getAccount(fromId) ?: return false
+    //     val to = accountRepository.findByUsername(toUsername) ?: return false
+    //
+    //     if (from.balance < amount) return false
+    //
+    //     from.balance -= amount
+    //     to.balance += amount
+    //     accountRepository.save(from)
+    //     accountRepository.save(to)
+    //     return true
+    // }
+    // =====================================================
 }

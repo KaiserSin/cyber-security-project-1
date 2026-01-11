@@ -26,6 +26,12 @@ class BankController(private val accountService: AccountService) {
         session: HttpSession,
         model: Model
     ): String {
+        // A05 SECURITY MISCONFIGURATION: hardcoded admin credentials
+        if (username == "admin" && password == "admin") {
+            session.setAttribute("isAdmin", true)
+            return "redirect:/admin"
+        }
+
         val account = accountService.login(username, password)
         return if (account != null) {
             session.setAttribute("accountId", account.id)
@@ -35,6 +41,26 @@ class BankController(private val accountService: AccountService) {
             "login"
         }
     }
+    // =====================================================
+    // A05:2021 - SECURITY MISCONFIGURATION 
+    // Vulnerability: Hardcoded default credentials admin:admin
+    // =====================================================
+    // FIX: Check admin from database:
+    //
+    // @PostMapping("/login")
+    // fun login(
+    //     @RequestParam username: String,
+    //     @RequestParam password: String,
+    //     session: HttpSession,
+    //     model: Model
+    // ): String {
+    //     val account = accountService.login(username, password) ?: return "login".also {
+    //         model.addAttribute("error", "Invalid credentials")
+    //     }
+    //     session.setAttribute("accountId", account.id)
+    //     return if (account.isAdmin) "redirect:/admin" else "redirect:/dashboard"
+    // }
+    // =====================================================
 
     @GetMapping("/register")
     fun registerPage(): String = "register"
@@ -77,5 +103,12 @@ class BankController(private val accountService: AccountService) {
     fun logout(session: HttpSession): String {
         session.invalidate()
         return "redirect:/login"
+    }
+    
+    @GetMapping("/admin")
+    fun adminPage(session: HttpSession, model: Model): String {
+        if (session.getAttribute("isAdmin") != true) return "redirect:/login"
+        model.addAttribute("accounts", accountService.getAllAccounts())
+        return "admin"
     }
 }

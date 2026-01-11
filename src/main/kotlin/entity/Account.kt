@@ -17,5 +17,8 @@ data class Account(
     val password: String = "",
     
     @Column(nullable = false)
-    var balance: BigDecimal = BigDecimal.ZERO
+    var balance: BigDecimal = BigDecimal.ZERO,
+    
+    @Column(nullable = false)
+    val isAdmin: Boolean = false
 )
