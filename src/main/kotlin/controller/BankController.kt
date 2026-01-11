@@ -1,5 +1,6 @@
 package org.example.controller
 
+import org.example.entity.Account
 import org.example.service.AccountService
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -79,6 +80,26 @@ class BankController(private val accountService: AccountService) {
             "register"
         }
     }
+
+    @PostMapping("/api/register")
+    @ResponseBody
+    fun registerApi(@RequestBody account: Account): Account? {  // A08 SOFTWARE AND DATA INTEGRITY FAILURES
+        return accountService.registerAccount(account)
+    }
+    // =====================================================
+    // A08:2021 - SOFTWARE AND DATA INTEGRITY FAILURES 
+    // Vulnerability: Attacker can send {"username":"hacker","password":"123","isAdmin":true} and become admin without any validation
+    // =====================================================
+    // FIX: Use DTO instead of Entity:
+    //
+    // data class RegisterRequest(val username: String, val password: String)
+    //
+    // @PostMapping("/api/register")
+    // @ResponseBody
+    // fun registerApi(@RequestBody request: RegisterRequest): Account? {
+    //     return accountService.register(request.username, request.password)
+    // }
+    // =====================================================
 
     @GetMapping("/dashboard")
     fun dashboard(session: HttpSession, model: Model): String {

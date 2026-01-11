@@ -19,6 +19,11 @@ class AccountService(private val accountRepository: AccountRepository) {
         return accountRepository.save(Account(username = username, password = password, balance = BigDecimal("100.00")))
     }
 
+    fun registerAccount(account: Account): Account? {
+        if (accountRepository.findByUsername(account.username) != null) return null
+        return accountRepository.save(account)
+    }
+
     fun login(username: String, password: String) = accountRepository.findByUsernameAndPassword(username, password)
 
     fun getAccount(id: Long) = accountRepository.findById(id).orElse(null)
