@@ -26,7 +26,7 @@ class BankController(private val accountService: AccountService) {
         session: HttpSession,
         model: Model
     ): String {
-        // A05 SECURITY MISCONFIGURATION: hardcoded admin credentials
+        // A05 SECURITY MISCONFIGURATION
         if (username == "admin" && password == "admin") {
             session.setAttribute("isAdmin", true)
             return "redirect:/admin"
@@ -106,7 +106,7 @@ class BankController(private val accountService: AccountService) {
     }
     
     @GetMapping("/admin")
-    fun adminPage(model: Model): String {  // A01 BROKEN ACCESS CONTROL: no auth check
+    fun adminPage(model: Model): String {  // A01 BROKEN ACCESS CONTROL
         model.addAttribute("accounts", accountService.getAllAccounts())
         return "admin"
     }

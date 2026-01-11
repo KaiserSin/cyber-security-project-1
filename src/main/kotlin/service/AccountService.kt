@@ -25,7 +25,6 @@ class AccountService(private val accountRepository: AccountRepository) {
 
     fun getAllAccounts() = accountRepository.findAll()
 
-    
     @Transactional
     fun transfer(fromId: Long, toUsername: String, amount: BigDecimal): Boolean {
         val from = getAccount(fromId) ?: return false
@@ -35,7 +34,7 @@ class AccountService(private val accountRepository: AccountRepository) {
         if (results.isEmpty()) return false
         
         val to = results[0] as Account
-        if (from.balance < amount) return false
+        // A04 INSECURE DESIGN
         
         from.balance -= amount
         to.balance += amount
@@ -44,23 +43,16 @@ class AccountService(private val accountRepository: AccountRepository) {
         return true
     }
     // =====================================================
-    // A03:2021 - INJECTION
+    // A03:2021 - INJECTION 
     // Vulnerability: SQL injection via string concatenation
     // =====================================================
-    // FIX: Use safe repository method instead:
+    // A04:2021 - INSECURE DESIGN (
+    // Vulnerability: No balance validation. Can transfer more than available
+    // =====================================================
+    // FIX for A03: Use safe repository method:
+    //   val to = accountRepository.findByUsername(toUsername) ?: return false
     //
-    // @Transactional
-    // fun transfer(fromId: Long, toUsername: String, amount: BigDecimal): Boolean {
-    //     val from = getAccount(fromId) ?: return false
-    //     val to = accountRepository.findByUsername(toUsername) ?: return false
-    //
-    //     if (from.balance < amount) return false
-    //
-    //     from.balance -= amount
-    //     to.balance += amount
-    //     accountRepository.save(from)
-    //     accountRepository.save(to)
-    //     return true
-    // }
+    // FIX for A04: Add balance check:
+    //   if (from.balance < amount) return false
     // =====================================================
 }
