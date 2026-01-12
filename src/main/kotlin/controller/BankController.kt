@@ -51,7 +51,7 @@ class BankController(private val accountService: AccountService) {
     // A05:2021 - SECURITY MISCONFIGURATION 
     // Vulnerability: Hardcoded default credentials admin:admin
     // =====================================================
-    // FIX: Check admin from database:
+    // FIX: Remove hardcoded bypass and authenticate only against DB:
     //
     // @PostMapping("/login")
     // fun login(
@@ -64,6 +64,7 @@ class BankController(private val accountService: AccountService) {
     //         model.addAttribute("error", "Invalid credentials")
     //     }
     //     session.setAttribute("accountId", account.id)
+    //     session.setAttribute("isAdmin", account.isAdmin)
     //     return if (account.isAdmin) "redirect:/admin" else "redirect:/dashboard"
     // }
     // =====================================================
@@ -95,7 +96,7 @@ class BankController(private val accountService: AccountService) {
     // A08:2021 - SOFTWARE AND DATA INTEGRITY FAILURES
     // Vulnerability: Attacker can send {"username":"hacker","password":"123","isAdmin":true} and become admin without any validation
     // =====================================================
-    // FIX: Use DTO instead of Entity:
+    // FIX: Use DTO instead of Entity and call register() so isAdmin is controlled server-side:
     //
     // data class RegisterRequest(val username: String, val password: String)
     //
@@ -150,11 +151,13 @@ class BankController(private val accountService: AccountService) {
     // A01:2021 - BROKEN ACCESS CONTROL 
     // Vulnerability: anyone can access /admin without logging in
     // =====================================================
-    // FIX: Add session check:
+    // FIX: Add an authorization check (session + DB lookup):
     //
     // @GetMapping("/admin")
     // fun adminPage(session: HttpSession, model: Model): String {
-    //     if (session.getAttribute("isAdmin") != true) return "redirect:/login"
+    //     val accountId = session.getAttribute("accountId") as? Long ?: return "redirect:/login"
+    //     val account = accountService.getAccount(accountId) ?: return "redirect:/login"
+    //     if (!account.isAdmin) return "redirect:/dashboard"
     //     model.addAttribute("accounts", accountService.getAllAccounts())
     //     return "admin"
     // }

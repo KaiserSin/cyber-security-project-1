@@ -40,7 +40,7 @@ class AccountService(private val accountRepository: AccountRepository) {
     // A03:2021 - INJECTION 
     // Vulnerability: Attacker can modify any field: balance, isAdmin, or delete data
     // =====================================================
-    // FIX: Use parameterized query:
+    // FIX: Use a parameterized query (or JPA repository) so attacker input is not concatenated:
     //   val sql = "UPDATE accounts SET username = :newUsername WHERE id = :id"
     //   entityManager.createNativeQuery(sql)
     //       .setParameter("newUsername", newUsername)
@@ -63,7 +63,8 @@ class AccountService(private val accountRepository: AccountRepository) {
     // A04:2021 - INSECURE DESIGN 
     // Vulnerability: No balance validation. Can transfer more than available
     // =====================================================
-    // FIX for A04: Add balance check:
+    // FIX for A04: Validate amount and balance before subtracting:
+    //   if (amount <= BigDecimal.ZERO) return false
     //   if (from.balance < amount) return false
     // =====================================================
 }
