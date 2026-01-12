@@ -14,7 +14,7 @@ class DataInitializer(private val accountRepository: AccountRepository) : Comman
             accountRepository.save(
                 Account(
                     username = "admin",
-                    password = "admin",
+                    password = "admin123",
                     balance = BigDecimal("10000.00"),
                     isAdmin = true
                 )
