@@ -31,16 +31,28 @@ class AccountService(private val accountRepository: AccountRepository) {
     fun getAllAccounts() = accountRepository.findAll()
 
     @Transactional
+    fun updateUsername(accountId: Long, newUsername: String): Boolean {
+        val sql = "UPDATE accounts SET username = '$newUsername' WHERE id = $accountId"  // A03 INJECTION
+        entityManager.createNativeQuery(sql).executeUpdate()
+        return true
+    }
+    // =====================================================
+    // A03:2021 - INJECTION 
+    // Vulnerability: Attacker can modify any field: balance, isAdmin, or delete data
+    // =====================================================
+    // FIX: Use parameterized query:
+    //   val sql = "UPDATE accounts SET username = :newUsername WHERE id = :id"
+    //   entityManager.createNativeQuery(sql)
+    //       .setParameter("newUsername", newUsername)
+    //       .setParameter("id", accountId)
+    //       .executeUpdate()
+    // =====================================================
+
+    @Transactional
     fun transfer(fromId: Long, toUsername: String, amount: BigDecimal): Boolean {
         val from = getAccount(fromId) ?: return false
-        
-        val sql = "SELECT * FROM accounts WHERE username = '$toUsername'"  // A03 INJECTION
-        val results = entityManager.createNativeQuery(sql, Account::class.java).resultList
-        if (results.isEmpty()) return false
-        
-        val to = results[0] as Account
+        val to = accountRepository.findByUsername(toUsername) ?: return false
         // A04 INSECURE DESIGN
-        
         from.balance -= amount
         to.balance += amount
         accountRepository.save(from)
@@ -48,15 +60,9 @@ class AccountService(private val accountRepository: AccountRepository) {
         return true
     }
     // =====================================================
-    // A03:2021 - INJECTION 
-    // Vulnerability: SQL injection via string concatenation
-    // =====================================================
-    // A04:2021 - INSECURE DESIGN (
+    // A04:2021 - INSECURE DESIGN 
     // Vulnerability: No balance validation. Can transfer more than available
     // =====================================================
-    // FIX for A03: Use safe repository method:
-    //   val to = accountRepository.findByUsername(toUsername) ?: return false
-    //
     // FIX for A04: Add balance check:
     //   if (from.balance < amount) return false
     // =====================================================

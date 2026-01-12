@@ -9,6 +9,16 @@
     <p>Account ID: <span th:text="${account.id}"></span></p>
     <p th:if="${param.success}" style="color:green">Transfer successful!</p>
     <p th:if="${param.error}" style="color:red">Transfer failed!</p>
+    <p th:if="${param.updated}" style="color:green">Username updated!</p>
+    <hr>
+    <h3>Change Username</h3>
+    <form method="post" action="/update-username">
+        <p>
+            <label>New Username:</label><br>
+            <input type="text" name="newUsername" required>
+        </p>
+        <button type="submit">Update</button>
+    </form>
     <hr>
     <h3>Transfer Money</h3>
     <form method="post" action="/transfer">

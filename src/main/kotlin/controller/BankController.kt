@@ -28,7 +28,7 @@ class BankController(private val accountService: AccountService) {
         model: Model
     ): String {
         // A05 SECURITY MISCONFIGURATION
-        if (username == "admin" && password == "admin") {
+        if (username == "admin" && password == "admin" ) {
             session.setAttribute("isAdmin", true)
             return "redirect:/admin"
         }
@@ -36,7 +36,12 @@ class BankController(private val accountService: AccountService) {
         val account = accountService.login(username, password)
         return if (account != null) {
             session.setAttribute("accountId", account.id)
-            "redirect:/dashboard"
+            if (account.isAdmin) {
+                session.setAttribute("isAdmin", true)
+                "redirect:/admin"
+            } else {
+                "redirect:/dashboard"
+            }
         } else {
             model.addAttribute("error", "Invalid credentials")
             "login"
@@ -87,7 +92,7 @@ class BankController(private val accountService: AccountService) {
         return accountService.registerAccount(account)
     }
     // =====================================================
-    // A08:2021 - SOFTWARE AND DATA INTEGRITY FAILURES 
+    // A08:2021 - SOFTWARE AND DATA INTEGRITY FAILURES
     // Vulnerability: Attacker can send {"username":"hacker","password":"123","isAdmin":true} and become admin without any validation
     // =====================================================
     // FIX: Use DTO instead of Entity:
@@ -118,6 +123,16 @@ class BankController(private val accountService: AccountService) {
         val accountId = session.getAttribute("accountId") as? Long ?: return "redirect:/login"
         val success = accountService.transfer(accountId, toUsername, amount)
         return if (success) "redirect:/dashboard?success" else "redirect:/dashboard?error"
+    }
+
+    @PostMapping("/update-username")
+    fun updateUsername(
+        @RequestParam newUsername: String,
+        session: HttpSession
+    ): String {
+        val accountId = session.getAttribute("accountId") as? Long ?: return "redirect:/login"
+        accountService.updateUsername(accountId, newUsername) 
+        return "redirect:/dashboard?updated"
     }
 
     @GetMapping("/logout")
